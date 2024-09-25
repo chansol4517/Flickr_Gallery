@@ -3,7 +3,7 @@ const [btnMine, btnPopular] = document.querySelectorAll("nav button");
 //스크립트 처음 로드시에는 내갤러리 출력
 fetchFlickr("mine");
 
-//각 버튼 클릭시 갤러 타입 변경
+//각 버튼 클릭시 갤러리 타입 변경
 btnMine.addEventListener("click", () => fetchFlickr("mine"));
 btnPopular.addEventListener("click", () => fetchFlickr("interest"));
 
@@ -38,7 +38,6 @@ function fetchFlickr(type) {
             <img class='thumb' src="https://live.staticflickr.com/${pic.server}/${pic.id}_${pic.secret}_z.jpg" alt="https://live.staticflickr.com/${pic.server}/${pic.id}_${pic.secret}_b.jpg" />
           </figure>
           <h2>${pic.title}</h2>
-
           <div class='profile'>
             <img src='http://farm${pic.farm}.staticflickr.com/${pic.server}/buddyicons/${pic.owner}.jpg' alt=${pic.owner} /> <span>${pic.owner}</span>
           </div>
@@ -47,6 +46,16 @@ function fetchFlickr(type) {
       });
 
       list.innerHTML = tags;
+      const profilePic = document.querySelectorAll(".profile img");
+      console.log(profilePic);
+      profilePic.forEach(
+        (imgEl) =>
+          (imgEl.onerror = () =>
+            imgEl.setAttribute(
+              "src",
+              "https://www.flickr.com/images/buddyicon.gif"
+            ))
+      );
     });
 }
 
