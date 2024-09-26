@@ -1,37 +1,50 @@
-const [btnMine, btnPopular] = document.querySelectorAll("nav button");
 let dataType = "";
+const [btnMine, btnPopular] = document.querySelectorAll("nav button");
+//searchBox안쪽에 있는 두번째 요소인 input, 세번째 요소인 btnSearch를 비구조할당으로 변수할당
+const [_, inputSearch, btnSearch] =
+  document.querySelector(".searchBox").children;
 
-//스크립트 처음 로드시에는 내갤러리 출력
-fetchFlickr("mine");
+fetchFlickr({ type: "mine" });
+btnMine.addEventListener("click", () => fetchFlickr({ type: "mine" }));
+btnPopular.addEventListener("click", () => fetchFlickr({ type: "interest" }));
+//검색 버튼 클릭시
+btnSearch.addEventListener("click", () => {
+  //인풋요소의 value값 (검색어)을 tags에 담아 fetchFlickr함수 호출
+  fetchFlickr({ type: "search", tags: inputSearch.value });
+  //호출시 input요소의 검색어는 지워줌
+  inputSearch.value = "";
+});
 
-//각 버튼 클릭시 갤러리 타입 변경
-btnMine.addEventListener("click", () => fetchFlickr("mine"));
-btnPopular.addEventListener("click", () => fetchFlickr("interest"));
-
-//특정 요소에 특정 함수 연결
 document.body.addEventListener("click", (e) => {
   if (e.target.className === "thumb") createModal(e);
   if (e.target.className === "btnClose") removeModal();
-  if (e.target.className === "userID") fetchFlickr(e.target.innerText);
+  if (e.target.className === "userID")
+    fetchFlickr({ type: "user", userID: e.target.innerText });
 });
 
-//flickr fetching함수
-function fetchFlickr(type) {
-  if (type === dataType) return;
-  dataType = type;
+function fetchFlickr(opt) {
+  if (opt.type === dataType) return;
+  dataType = opt.type;
 
   const api_key = "4d169468c797367f117aa87d17803eac";
   const baseURL = `https://www.flickr.com/services/rest/?api_key=${api_key}&method=`;
   const myID = "201491619@N03";
   const method_mine = "flickr.people.getPhotos";
   const method_interest = "flickr.interestingness.getList";
+  //검색전용 api 메서드 추가
+  const method_search = "flickr.photos.search";
   let url_mine = `${baseURL}${method_mine}&user_id=${myID}&nojsoncallback=1&format=json`;
-  let url_user = `${baseURL}${method_mine}&user_id=${type}&nojsoncallback=1&format=json`;
+  let url_user = `${baseURL}${method_mine}&user_id=${opt.userID}&nojsoncallback=1&format=json`;
   let url_interest = `${baseURL}${method_interest}&nojsoncallback=1&format=json`;
+  //opt로 전달된 tags 프로퍼티의 값을 tags라는 쿼리값 연동
+  let url_search = `${baseURL}${method_search}&tags=${opt.tags}&nojsoncallback=1&format=json`;
+
   let result_url = "";
-  if (type === "mine") result_url = url_mine;
-  else if (type === "interest") result_url = url_interest;
-  else result_url = url_user;
+  if (opt.type === "mine") result_url = url_mine;
+  if (opt.type === "interest") result_url = url_interest;
+  if (opt.type === "user") result_url = url_user;
+  //전달된 opt.type값이 search이면 url_search 요청을 fetch함수에 전달
+  if (opt.type === "search") result_url = url_search;
 
   fetch(result_url)
     .then((data) => data.json())
@@ -41,7 +54,6 @@ function fetchFlickr(type) {
     });
 }
 
-//목록 생성 함수
 function createList(dataArr) {
   const list = document.querySelector(".list");
   let tags = "";
@@ -66,7 +78,6 @@ function createList(dataArr) {
   setDefImg();
 }
 
-//이미지 엑박시 대체이미지 연결 함수
 function setDefImg() {
   const profilePic = document.querySelectorAll(".profile img");
   console.log(profilePic);
@@ -81,7 +92,6 @@ function setDefImg() {
   );
 }
 
-//모달생성 함수
 function createModal(e) {
   const imgSrc = e.target.getAttribute("alt");
   const modal = document.createElement("aside");
@@ -95,7 +105,6 @@ function createModal(e) {
   document.body.append(modal);
 }
 
-//모달 제거함수
 function removeModal() {
   document.querySelector(".modal").remove();
 }
